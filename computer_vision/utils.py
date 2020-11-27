@@ -66,3 +66,44 @@ def adaptiveThresholdMean(img,  block_size=5, C=4):
             else:
                 res[i, j] = 0
     return res
+
+def otsuThreshold(img):
+    
+    if type(img) is not np.ndarray:
+        raise AssertionError("img is not ndarray")
+    
+    hist = Histogram(img)
+    
+    vars_within = []
+    vars_between = []
+
+    zero = 1.e-17
+    for t in range(0, 256):
+        sumb = np.sum(hist[:t]) + zero
+        sumw = np.sum(hist[t:]) + zero
+        sum = sumb + sumw
+        wb = sumb/sum
+        ww = sumw/sum
+        
+        mub = zero
+        muw = zero
+        for i in range(0, t):
+            mub += i * hist[i]/sumb
+        for i in range(t, 256):
+            muw += i * hist[i]/sumw
+
+        vb = zero
+        vw = zero
+        for i in range(0, t):
+            vb += hist[i] * ((i - mub)**2)/sumb
+        for i in range(t, 256):
+            vw += hist[i] * ((i - muw)**2)/sumw
+    
+        var_within = wb * vb + ww * vw
+        vars_within.append(var_within)
+
+
+    th = vars_within.index(min(vars_within))
+    print(th)
+    res = Threshold(img, th)
+    return res
